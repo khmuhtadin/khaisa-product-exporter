@@ -3,7 +3,7 @@
  * Plugin Name: Khaisa Product Exporter
  * Plugin URI: https://github.com/khmuhtadin/khaisa-product-exporter
  * Description: Export WooCommerce orders with detailed customer information, shipping addresses, and order items in CSV format with advanced filtering options. Built by Khairul Muhtadin.
- * Version: 1.0.1
+ * Version: 1.0.2
  * Author: Khairul Muhtadin
  * Author URI: https://khmuhtadin.com
  * License: GPL v3 or later
@@ -28,7 +28,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('KPE_VERSION', '1.0.1');
+define('KPE_VERSION', '1.0.2');
 define('KPE_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('KPE_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('KPE_PLUGIN_BASENAME', plugin_basename(__FILE__));
