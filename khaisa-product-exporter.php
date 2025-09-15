@@ -68,15 +68,17 @@ final class KhaisaProductExporter {
      * Initialize plugin
      */
     private function init() {
+        // Load plugin text domain first
+        add_action('plugins_loaded', array($this, 'load_textdomain'));
+        
         // Check if WooCommerce is active
         if (!$this->is_woocommerce_active()) {
             add_action('admin_notices', array($this, 'woocommerce_missing_notice'));
+            // Still add a basic menu for troubleshooting
+            add_action('admin_menu', array($this, 'admin_menu_fallback'));
             return;
         }
 
-        // Load plugin text domain
-        add_action('plugins_loaded', array($this, 'load_textdomain'));
-        
         // Include required files
         $this->includes();
         
@@ -109,6 +111,111 @@ final class KhaisaProductExporter {
                     <?php _e('Install WooCommerce', 'khaisa-product-exporter'); ?>
                 </a>
             </p>
+            <p>
+                <strong><?php _e('Plugin Status:', 'khaisa-product-exporter'); ?></strong>
+                <?php _e('Menu will appear under WooCommerce → Order Exporter once WooCommerce is activated.', 'khaisa-product-exporter'); ?>
+            </p>
+        </div>
+        <?php
+    }
+
+    /**
+     * Fallback admin menu when WooCommerce is not active
+     */
+    public function admin_menu_fallback() {
+        add_menu_page(
+            __('Khaisa Product Exporter', 'khaisa-product-exporter'),
+            __('KPE Status', 'khaisa-product-exporter'),
+            'manage_options',
+            'khaisa-product-exporter-status',
+            array($this, 'admin_page_fallback'),
+            'dashicons-download',
+            30
+        );
+    }
+
+    /**
+     * Fallback admin page when WooCommerce is not active
+     */
+    public function admin_page_fallback() {
+        ?>
+        <div class="wrap">
+            <h1><?php _e('Khaisa Product Exporter - Status', 'khaisa-product-exporter'); ?></h1>
+            
+            <div class="notice notice-warning">
+                <h2><?php _e('WooCommerce Required', 'khaisa-product-exporter'); ?></h2>
+                <p><?php _e('This plugin requires WooCommerce to function properly.', 'khaisa-product-exporter'); ?></p>
+            </div>
+            
+            <div class="card">
+                <h2><?php _e('Plugin Status Check', 'khaisa-product-exporter'); ?></h2>
+                <table class="widefat">
+                    <tbody>
+                        <tr>
+                            <td><strong><?php _e('Plugin Version:', 'khaisa-product-exporter'); ?></strong></td>
+                            <td><?php echo KPE_VERSION; ?></td>
+                        </tr>
+                        <tr>
+                            <td><strong><?php _e('WordPress Version:', 'khaisa-product-exporter'); ?></strong></td>
+                            <td><?php echo get_bloginfo('version'); ?></td>
+                        </tr>
+                        <tr>
+                            <td><strong><?php _e('WooCommerce Status:', 'khaisa-product-exporter'); ?></strong></td>
+                            <td>
+                                <?php if (class_exists('WooCommerce')) : ?>
+                                    <span style="color: green;">✓ <?php _e('Active', 'khaisa-product-exporter'); ?></span>
+                                    <br><em><?php _e('Please refresh this page to access the Order Exporter.', 'khaisa-product-exporter'); ?></em>
+                                <?php else : ?>
+                                    <span style="color: red;">✗ <?php _e('Not Active', 'khaisa-product-exporter'); ?></span>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong><?php _e('PHP Version:', 'khaisa-product-exporter'); ?></strong></td>
+                            <td>
+                                <?php echo PHP_VERSION; ?>
+                                <?php if (version_compare(PHP_VERSION, '7.4', '>=')) : ?>
+                                    <span style="color: green;">✓ <?php _e('Compatible', 'khaisa-product-exporter'); ?></span>
+                                <?php else : ?>
+                                    <span style="color: red;">✗ <?php _e('Requires PHP 7.4+', 'khaisa-product-exporter'); ?></span>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="card">
+                <h2><?php _e('Next Steps', 'khaisa-product-exporter'); ?></h2>
+                <ol>
+                    <li>
+                        <?php if (!class_exists('WooCommerce')) : ?>
+                            <a href="<?php echo admin_url('plugin-install.php?tab=plugin-information&plugin=woocommerce'); ?>" class="button button-primary">
+                                <?php _e('Install WooCommerce', 'khaisa-product-exporter'); ?>
+                            </a>
+                        <?php else : ?>
+                            <a href="<?php echo admin_url('plugins.php'); ?>" class="button button-primary">
+                                <?php _e('Activate WooCommerce', 'khaisa-product-exporter'); ?>
+                            </a>
+                        <?php endif; ?>
+                    </li>
+                    <li><?php _e('Once WooCommerce is active, the Order Exporter will appear under:', 'khaisa-product-exporter'); ?> <strong><?php _e('WooCommerce → Order Exporter', 'khaisa-product-exporter'); ?></strong></li>
+                    <li><?php _e('Visit the exporter to export your WooCommerce orders with advanced filtering options.', 'khaisa-product-exporter'); ?></li>
+                </ol>
+            </div>
+            
+            <div class="card">
+                <h2><?php _e('Plugin Information', 'khaisa-product-exporter'); ?></h2>
+                <p><?php _e('Khaisa Product Exporter allows you to export WooCommerce orders with detailed customer information, shipping addresses, and order items in CSV format.', 'khaisa-product-exporter'); ?></p>
+                <p>
+                    <a href="https://github.com/khmuhtadin/khaisa-product-exporter" target="_blank" class="button">
+                        <?php _e('Documentation', 'khaisa-product-exporter'); ?>
+                    </a>
+                    <a href="https://github.com/khmuhtadin/khaisa-product-exporter/issues" target="_blank" class="button">
+                        <?php _e('Support', 'khaisa-product-exporter'); ?>
+                    </a>
+                </p>
+            </div>
         </div>
         <?php
     }
@@ -145,6 +252,7 @@ final class KhaisaProductExporter {
      * Add admin menu
      */
     public function admin_menu() {
+        // Add submenu under WooCommerce (primary location)
         add_submenu_page(
             'woocommerce',
             __('Khaisa Order Exporter', 'khaisa-product-exporter'),
@@ -152,6 +260,17 @@ final class KhaisaProductExporter {
             'manage_woocommerce',
             'khaisa-order-exporter',
             array($this, 'admin_page')
+        );
+        
+        // Also add as a top-level menu for better accessibility
+        add_menu_page(
+            __('Khaisa Product Exporter', 'khaisa-product-exporter'),
+            __('Order Exporter', 'khaisa-product-exporter'),
+            'manage_woocommerce',
+            'khaisa-product-exporter',
+            array($this, 'admin_page'),
+            'dashicons-download',
+            30
         );
     }
 
@@ -167,7 +286,9 @@ final class KhaisaProductExporter {
      * Enqueue admin scripts and styles
      */
     public function admin_enqueue_scripts($hook) {
-        if ('woocommerce_page_khaisa-order-exporter' !== $hook) {
+        // Check if we're on either the WooCommerce submenu or the main menu page
+        if ('woocommerce_page_khaisa-order-exporter' !== $hook && 
+            'toplevel_page_khaisa-product-exporter' !== $hook) {
             return;
         }
 
@@ -207,7 +328,7 @@ final class KhaisaProductExporter {
      */
     public function plugin_action_links($links) {
         $action_links = array(
-            'settings' => '<a href="' . admin_url('admin.php?page=khaisa-order-exporter') . '">' . __('Export Orders', 'khaisa-product-exporter') . '</a>',
+            'settings' => '<a href="' . admin_url('admin.php?page=khaisa-product-exporter') . '">' . __('Export Orders', 'khaisa-product-exporter') . '</a>',
             'github' => '<a href="https://github.com/khmuhtadin/khaisa-product-exporter" target="_blank">' . __('GitHub', 'khaisa-product-exporter') . '</a>',
         );
 
