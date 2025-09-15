@@ -71,11 +71,23 @@ final class KhaisaProductExporter {
         // Load plugin text domain first
         add_action('plugins_loaded', array($this, 'load_textdomain'));
         
-        // Check if WooCommerce is active
+        // Always add fallback menu first
+        add_action('admin_menu', array($this, 'admin_menu_fallback'));
+        
+        // Check for WooCommerce after all plugins are loaded
+        add_action('plugins_loaded', array($this, 'init_after_plugins_loaded'), 20);
+        
+        // Add plugin action links
+        add_filter('plugin_action_links_' . KPE_PLUGIN_BASENAME, array($this, 'plugin_action_links'));
+    }
+
+    /**
+     * Initialize after all plugins are loaded
+     */
+    public function init_after_plugins_loaded() {
+        // Check if WooCommerce is active after all plugins loaded
         if (!$this->is_woocommerce_active()) {
             add_action('admin_notices', array($this, 'woocommerce_missing_notice'));
-            // Still add a basic menu for troubleshooting
-            add_action('admin_menu', array($this, 'admin_menu_fallback'));
             return;
         }
 
@@ -86,16 +98,22 @@ final class KhaisaProductExporter {
         if (is_admin()) {
             $this->init_admin();
         }
-
-        // Add plugin action links
-        add_filter('plugin_action_links_' . KPE_PLUGIN_BASENAME, array($this, 'plugin_action_links'));
+        
+        // Remove the error notice if it was added
+        remove_action('admin_notices', array($this, 'woocommerce_missing_notice'));
     }
 
     /**
      * Check if WooCommerce is active
      */
     private function is_woocommerce_active() {
-        return class_exists('WooCommerce');
+        // Check multiple ways to ensure WooCommerce is properly detected
+        return (
+            class_exists('WooCommerce') || 
+            class_exists('woocommerce') ||
+            function_exists('WC') ||
+            in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins')))
+        );
     }
 
     /**
@@ -123,15 +141,19 @@ final class KhaisaProductExporter {
      * Fallback admin menu when WooCommerce is not active
      */
     public function admin_menu_fallback() {
-        add_menu_page(
-            __('Khaisa Product Exporter', 'khaisa-product-exporter'),
-            __('KPE Status', 'khaisa-product-exporter'),
-            'manage_options',
-            'khaisa-product-exporter-status',
-            array($this, 'admin_page_fallback'),
-            'dashicons-download',
-            30
-        );
+        // Only show fallback menu if WooCommerce is not active
+        // This runs after admin_menu hook, so WooCommerce should be detected
+        if (!$this->is_woocommerce_active()) {
+            add_menu_page(
+                __('Khaisa Product Exporter', 'khaisa-product-exporter'),
+                __('KPE Status', 'khaisa-product-exporter'),
+                'manage_options',
+                'khaisa-product-exporter-status',
+                array($this, 'admin_page_fallback'),
+                'dashicons-download',
+                30
+            );
+        }
     }
 
     /**
@@ -167,7 +189,16 @@ final class KhaisaProductExporter {
                             <td>
                                 <?php if (class_exists('WooCommerce')) : ?>
                                     <span style="color: green;">✓ <?php _e('Active', 'khaisa-product-exporter'); ?></span>
-                                    <br><em><?php _e('Please refresh this page to access the Order Exporter.', 'khaisa-product-exporter'); ?></em>
+                                    <br><small><em>
+                                        Class: <?php echo class_exists('WooCommerce') ? 'YES' : 'NO'; ?> | 
+                                        Function: <?php echo function_exists('WC') ? 'YES' : 'NO'; ?> | 
+                                        Plugin: <?php echo in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins'))) ? 'YES' : 'NO'; ?>
+                                    </em></small>
+                                    <?php if ($this->is_woocommerce_active()): ?>
+                                        <br><em><?php _e('Detection: PASSED - Menus should be available', 'khaisa-product-exporter'); ?></em>
+                                    <?php else: ?>
+                                        <br><em style="color: red;"><?php _e('Detection: FAILED - This is the issue!', 'khaisa-product-exporter'); ?></em>
+                                    <?php endif; ?>
                                 <?php else : ?>
                                     <span style="color: red;">✗ <?php _e('Not Active', 'khaisa-product-exporter'); ?></span>
                                 <?php endif; ?>
@@ -288,6 +319,11 @@ final class KhaisaProductExporter {
      * Add admin menu
      */
     public function admin_menu() {
+        // Only add menus if WooCommerce is active
+        if (!$this->is_woocommerce_active()) {
+            return;
+        }
+        
         // Add submenu under WooCommerce (primary location)
         add_submenu_page(
             'woocommerce',
