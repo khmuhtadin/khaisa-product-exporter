@@ -153,7 +153,10 @@ final class KhaisaProductExporter {
                     <tbody>
                         <tr>
                             <td><strong><?php _e('Plugin Version:', 'khaisa-product-exporter'); ?></strong></td>
-                            <td><?php echo KPE_VERSION; ?></td>
+                            <td>
+                                <?php echo KPE_VERSION; ?>
+                                <br><small><em>File Version: <?php echo get_plugin_data(__FILE__)['Version']; ?></em></small>
+                            </td>
                         </tr>
                         <tr>
                             <td><strong><?php _e('WordPress Version:', 'khaisa-product-exporter'); ?></strong></td>
@@ -168,6 +171,39 @@ final class KhaisaProductExporter {
                                 <?php else : ?>
                                     <span style="color: red;">✗ <?php _e('Not Active', 'khaisa-product-exporter'); ?></span>
                                 <?php endif; ?>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong><?php _e('Menu Status:', 'khaisa-product-exporter'); ?></strong></td>
+                            <td>
+                                <?php 
+                                global $menu, $submenu;
+                                $wc_menu_found = false;
+                                $kpe_menu_found = false;
+                                
+                                // Check if WooCommerce menu exists
+                                if (isset($submenu['woocommerce'])) {
+                                    foreach ($submenu['woocommerce'] as $item) {
+                                        if (strpos($item[2], 'khaisa-order-exporter') !== false) {
+                                            $wc_menu_found = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                                
+                                // Check if main KPE menu exists
+                                if (isset($menu)) {
+                                    foreach ($menu as $item) {
+                                        if (isset($item[2]) && $item[2] === 'khaisa-product-exporter') {
+                                            $kpe_menu_found = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                                ?>
+                                WooCommerce Submenu: <?php echo $wc_menu_found ? '<span style="color: green;">✓ Found</span>' : '<span style="color: red;">✗ Missing</span>'; ?><br>
+                                Main Menu: <?php echo $kpe_menu_found ? '<span style="color: green;">✓ Found</span>' : '<span style="color: red;">✗ Missing</span>'; ?><br>
+                                <small><em>Current Hook: <?php echo current_filter(); ?></em></small>
                             </td>
                         </tr>
                         <tr>
