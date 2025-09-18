@@ -206,8 +206,8 @@ class KPE_Exporter {
         $select_fields[] = "o.status as Status";
         $select_fields[] = "o.date_created_gmt as Order_Date";
         $select_fields[] = "o.date_updated_gmt as Last_Updated";
-        $select_fields[] = "o.total_amount as Order_Total";
-        $select_fields[] = "o.tax_amount as Order_Tax";
+        $select_fields[] = "ROUND(o.total_amount, 2) as Order_Total";
+        $select_fields[] = "ROUND(o.tax_amount, 2) as Order_Tax";
         $select_fields[] = "o.currency as Currency";
         $select_fields[] = "o.payment_method as Payment_Method";
         $select_fields[] = "o.payment_method_title as Payment_Method_Title";
@@ -248,20 +248,20 @@ class KPE_Exporter {
             $joins[] = "LEFT JOIN {$wpdb->posts} p ON opl.product_id = p.ID";
             $joins[] = "LEFT JOIN {$wpdb->posts} pv ON opl.variation_id = pv.ID";
             $joins[] = "LEFT JOIN {$wpdb->postmeta} pm ON (CASE WHEN opl.variation_id > 0 THEN opl.variation_id ELSE opl.product_id END) = pm.post_id AND pm.meta_key = '_sku'";
-            
+
             $select_fields[] = "opl.order_item_id as Order_Item_ID";
             $select_fields[] = "opl.product_id as Product_ID";
             $select_fields[] = "opl.variation_id as Variation_ID";
             $select_fields[] = "p.post_title as Product_Name";
             $select_fields[] = "CASE WHEN opl.variation_id > 0 THEN CONCAT(p.post_title, ' - ', pv.post_title) ELSE p.post_title END as Full_Product_Name";
-            $select_fields[] = "pm.meta_value as SKU";
+            $select_fields[] = "COALESCE(pm.meta_value, '') as SKU";
             $select_fields[] = "opl.product_qty as Quantity";
-            $select_fields[] = "opl.product_gross_revenue as Item_Gross_Revenue";
-            $select_fields[] = "opl.product_net_revenue as Item_Net_Revenue";
-            $select_fields[] = "opl.coupon_amount as Item_Coupon_Amount";
-            $select_fields[] = "opl.tax_amount as Item_Tax_Amount";
-            $select_fields[] = "opl.shipping_amount as Item_Shipping_Amount";
-            $select_fields[] = "opl.shipping_tax_amount as Item_Shipping_Tax_Amount";
+            $select_fields[] = "ROUND(opl.product_gross_revenue, 2) as Item_Gross_Revenue";
+            $select_fields[] = "ROUND(opl.product_net_revenue, 2) as Item_Net_Revenue";
+            $select_fields[] = "ROUND(opl.coupon_amount, 2) as Item_Coupon_Amount";
+            $select_fields[] = "ROUND(opl.tax_amount, 2) as Item_Tax_Amount";
+            $select_fields[] = "ROUND(opl.shipping_amount, 2) as Item_Shipping_Amount";
+            $select_fields[] = "ROUND(opl.shipping_tax_amount, 2) as Item_Shipping_Tax_Amount";
         }
         
         // Date filters
@@ -388,14 +388,14 @@ class KPE_Exporter {
      */
     private function get_order_row_data($order, $filters, $item_id = null, $item = null) {
         $row = array();
-        
+
         // Basic order data
         $row['Order_ID'] = $order->get_id();
         $row['Status'] = $order->get_status();
         $row['Order_Date'] = $order->get_date_created()->format('Y-m-d H:i:s');
         $row['Last_Updated'] = $order->get_date_modified()->format('Y-m-d H:i:s');
-        $row['Order_Total'] = $order->get_total();
-        $row['Order_Tax'] = $order->get_total_tax();
+        $row['Order_Total'] = $this->format_price($order->get_total());
+        $row['Order_Tax'] = $this->format_price($order->get_total_tax());
         $row['Currency'] = $order->get_currency();
         $row['Payment_Method'] = $order->get_payment_method();
         $row['Payment_Method_Title'] = $order->get_payment_method_title();
@@ -439,12 +439,12 @@ class KPE_Exporter {
             $row['Full_Product_Name'] = $item->get_name();
             $row['SKU'] = $product ? $product->get_sku() : '';
             $row['Quantity'] = $item->get_quantity();
-            $row['Item_Gross_Revenue'] = $item->get_total() + $item->get_total_tax();
-            $row['Item_Net_Revenue'] = $item->get_total();
-            $row['Item_Coupon_Amount'] = 0; // Would need additional calculation
-            $row['Item_Tax_Amount'] = $item->get_total_tax();
-            $row['Item_Shipping_Amount'] = 0; // Would need additional calculation
-            $row['Item_Shipping_Tax_Amount'] = 0; // Would need additional calculation
+            $row['Item_Gross_Revenue'] = $this->format_price($item->get_total() + $item->get_total_tax());
+            $row['Item_Net_Revenue'] = $this->format_price($item->get_total());
+            $row['Item_Coupon_Amount'] = $this->format_price(0); // Would need additional calculation
+            $row['Item_Tax_Amount'] = $this->format_price($item->get_total_tax());
+            $row['Item_Shipping_Amount'] = $this->format_price(0); // Would need additional calculation
+            $row['Item_Shipping_Tax_Amount'] = $this->format_price(0); // Would need additional calculation
         } elseif ($filters['include_items']) {
             // Empty item data
             $row['Order_Item_ID'] = '';
@@ -469,8 +469,15 @@ class KPE_Exporter {
      * Check if WooCommerce HPOS is enabled
      */
     private function is_hpos_enabled() {
-        return class_exists('Automattic\WooCommerce\Utilities\OrderUtil') && 
+        return class_exists('Automattic\WooCommerce\Utilities\OrderUtil') &&
                method_exists('Automattic\WooCommerce\Utilities\OrderUtil', 'custom_orders_table_usage_is_enabled') &&
                \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled();
+    }
+
+    /**
+     * Format price to remove excessive decimal places
+     */
+    private function format_price($price) {
+        return number_format((float)$price, 2, '.', '');
     }
 }

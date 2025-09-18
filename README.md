@@ -133,9 +133,22 @@ ln -s /path/to/cloned/repo /path/to/wordpress/wp-content/plugins/khaisa-product-
 
 ## 📝 Changelog
 
+### Version 1.0.3
+- 🏗️ **Fixed HPOS Compatibility Warning** - Added proper WooCommerce HPOS feature compatibility declaration
+- ⚡ Enhanced plugin initialization to declare features early
+- 🔧 Version bump to 1.0.3
+
+### Version 1.0.2
+- 🐛 Plugin loading order fixes for WooCommerce menu registration
+- 🔧 Enhanced debugging for menu status and version tracking
+
+### Version 1.0.1
+- 🐛 Improved plugin visibility and comprehensive troubleshooting
+- 🔧 Better WooCommerce detection methods
+
 ### Version 1.0.0
 - ✨ Initial release
-- 🎯 Complete order export functionality  
+- 🎯 Complete order export functionality
 - 🖥️ Modern admin interface
 - 🏗️ HPOS compatibility
 - 🔒 Security implementation

@@ -55,15 +55,15 @@ jQuery(document).ready(function($) {
     // Preview orders
     $('#kpe-preview').click(function(e) {
         e.preventDefault();
-        
+
         var $button = $(this);
         var originalText = $button.text();
-        
-        $button.text(kpe_ajax.strings.exporting).prop('disabled', true);
-        
+
+        $button.html('<span class="kpe-spinner"></span>' + kpe_ajax.strings.exporting).prop('disabled', true);
+
         var formData = $('#kpe-export-form').serialize();
         formData += '&action=kpe_preview_orders';
-        
+
         $.post(kpe_ajax.ajax_url, formData, function(response) {
             if (response.success) {
                 displayPreview(response.data);
@@ -75,22 +75,22 @@ jQuery(document).ready(function($) {
             showError(kpe_ajax.strings.export_error);
         })
         .always(function() {
-            $button.text(originalText).prop('disabled', false);
+            $button.html(originalText).prop('disabled', false);
         });
     });
     
     // Export orders
     $('#kpe-export-form').submit(function(e) {
         e.preventDefault();
-        
+
         var $button = $('#kpe-export');
         var originalText = $button.text();
-        
-        $button.text(kpe_ajax.strings.exporting).prop('disabled', true);
-        
+
+        $button.html('<span class="kpe-spinner"></span>' + kpe_ajax.strings.exporting).prop('disabled', true);
+
         var formData = $(this).serialize();
         formData += '&action=kpe_export_orders';
-        
+
         $.post(kpe_ajax.ajax_url, formData, function(response) {
             if (response.success) {
                 displayExportResult(response.data);
@@ -102,7 +102,7 @@ jQuery(document).ready(function($) {
             showError(kpe_ajax.strings.export_error);
         })
         .always(function() {
-            $button.text(originalText).prop('disabled', false);
+            $button.html(originalText).prop('disabled', false);
         });
     });
     
@@ -178,27 +178,29 @@ jQuery(document).ready(function($) {
     function displayExportResult(data) {
         var html = '<div class="kpe-export-success">';
         html += '<div class="notice notice-success">';
-        html += '<p><strong>' + kpe_ajax.strings.export_complete + '</strong></p>';
+        html += '<p><strong>' + kpe_ajax.strings.export_complete + '</strong><span class="kpe-success-badge">✓ Success</span></p>';
         html += '</div>';
-        
+
         html += '<div class="kpe-export-details">';
         html += '<table class="form-table">';
-        html += '<tr><th>File:</th><td>' + escapeHtml(data.filename) + '</td></tr>';
-        html += '<tr><th>Records:</th><td>' + data.count + ' rows exported</td></tr>';
-        html += '<tr><th>File Size:</th><td>' + data.filesize + '</td></tr>';
+        html += '<tr><th>📄 File:</th><td><code>' + escapeHtml(data.filename) + '</code></td></tr>';
+        html += '<tr><th>📊 Records:</th><td><strong>' + data.count.toLocaleString() + '</strong> rows exported</td></tr>';
+        html += '<tr><th>💾 File Size:</th><td>' + data.filesize + '</td></tr>';
+        html += '<tr><th>⏰ Generated:</th><td>' + new Date().toLocaleString() + '</td></tr>';
         html += '</table>';
         html += '</div>';
-        
+
         html += '<div class="kpe-download-section">';
-        html += '<p><a href="' + data.download_url + '" class="button button-primary button-large">Download CSV File</a></p>';
-        html += '<p class="description">The file will be automatically deleted after download for security.</p>';
+        html += '<p><a href="' + data.download_url + '" class="button button-primary button-large">📥 Download CSV File</a></p>';
+        html += '<p class="description">🔒 The file will be automatically deleted after download for security.</p>';
+        html += '<p class="description">💡 <strong>Tip:</strong> Open the CSV file in Excel, Google Sheets, or any spreadsheet application.</p>';
         html += '</div>';
-        
+
         html += '</div>';
-        
+
         $('#kpe-results-content').html(html);
-        $('#kpe-results').show();
-        
+        $('#kpe-results').show().addClass('show');
+
         // Scroll to results
         $('html, body').animate({
             scrollTop: $('#kpe-results').offset().top - 100
@@ -283,8 +285,7 @@ jQuery(document).ready(function($) {
     // Show/hide additional options based on format
     $('#format').change(function() {
         var format = $(this).val();
-        var $includeOptions = $('input[name="include_billing"], input[name="include_shipping"], input[name="include_items"]');
-        
+
         switch(format) {
             case 'summary':
                 $('input[name="include_billing"]').prop('checked', true);

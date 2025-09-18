@@ -131,8 +131,15 @@ class KPE_Admin {
         
         ?>
         <div class="wrap">
-            <h1><?php _e('Khaisa Product Exporter', 'khaisa-product-exporter'); ?></h1>
-            
+            <h1><?php _e('Khaisa WooExporter', 'khaisa-product-exporter'); ?></h1>
+
+            <div class="kpe-nav-tabs">
+                <ul>
+                    <li><a href="<?php echo admin_url('admin.php?page=khaisa-product-exporter'); ?>"><?php _e('Plugin Status', 'khaisa-product-exporter'); ?></a></li>
+                    <li><a href="<?php echo admin_url('admin.php?page=khaisa-order-exporter'); ?>" class="current"><?php _e('Export Orders', 'khaisa-product-exporter'); ?></a></li>
+                </ul>
+            </div>
+
             <div class="kpe-container">
                 <div class="kpe-main-content">
                     <form id="kpe-export-form">

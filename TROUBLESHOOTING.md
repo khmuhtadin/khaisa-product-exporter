@@ -1,71 +1,71 @@
 # Troubleshooting Guide - Khaisa Product Exporter
 
-## 🔍 Plugin Menu Tidak Muncul (Menu Not Appearing)
+## 🔍 Plugin Menu Not Appearing
 
-### Solusi Umum (Common Solutions):
+### Common Solutions:
 
-#### 1. **Periksa WooCommerce Status**
-Plugin ini memerlukan WooCommerce untuk berfungsi. Menu akan muncul di:
+#### 1. **Check WooCommerce Status**
+This plugin requires WooCommerce to function. The menu will appear at:
 
-**Lokasi Menu:**
+**Menu Locations:**
 - **Primary**: `WooCommerce → Order Exporter`
-- **Alternative**: `Order Exporter` (menu utama di sidebar)
+- **Alternative**: `Order Exporter` (main menu in sidebar)
 
-#### 2. **Langkah Troubleshooting:**
+#### 2. **Troubleshooting Steps:**
 
 ```bash
-# 1. Pastikan WooCommerce aktif
-WordPress Admin → Plugins → Cari "WooCommerce" → Activate
+# 1. Ensure WooCommerce is active
+WordPress Admin → Plugins → Search "WooCommerce" → Activate
 
-# 2. Periksa permission user
-User harus memiliki capability 'manage_woocommerce'
+# 2. Check user permissions
+User must have 'manage_woocommerce' capability
 
-# 3. Clear cache jika menggunakan caching plugin
+# 3. Clear cache if using caching plugins
 ```
 
 #### 3. **Status Check Page**
-Jika WooCommerce tidak aktif, akan muncul menu `KPE Status` yang menampilkan:
+If WooCommerce is not active, a `KPE Status` menu will appear showing:
 - Plugin version
 - WordPress version  
 - WooCommerce status
 - PHP compatibility
-- Langkah-langkah perbaikan
+- Troubleshooting steps
 
 ### 🛠️ Debugging Steps:
 
-#### Step 1: Cek Plugin Active
+#### Step 1: Check Plugin Active
 ```php
-// Pastikan plugin active di WordPress Admin → Plugins
-// Look for "Khaisa Product Exporter" dengan status "Active"
+// Ensure plugin is active in WordPress Admin → Plugins
+// Look for "Khaisa Product Exporter" with "Active" status
 ```
 
-#### Step 2: Cek WooCommerce 
+#### Step 2: Check WooCommerce 
 ```php
 // WordPress Admin → Plugins
-// Pastikan "WooCommerce" active
-// Atau install dari: Add New → Search "WooCommerce"
+// Ensure "WooCommerce" is active
+// Or install from: Add New → Search "WooCommerce"
 ```
 
-#### Step 3: Cek User Permission
+#### Step 3: Check User Permissions
 ```php
-// User yang login harus memiliki role:
+// Logged in user must have role:
 // - Administrator (recommended)
 // - Shop Manager
-// - Atau role dengan capability 'manage_woocommerce'
+// - Or role with 'manage_woocommerce' capability
 ```
 
-#### Step 4: Cek PHP Version
+#### Step 4: Check PHP Version
 ```php
-// Plugin memerlukan PHP 7.4+
-// Cek di: WordPress Admin → Tools → Site Health
+// Plugin requires PHP 7.4+
+// Check at: WordPress Admin → Tools → Site Health
 ```
 
 ## 🔧 Manual Fix
 
-Jika masih bermasalah, tambahkan code ini ke `functions.php` theme:
+If still experiencing issues, add this code to your theme's `functions.php`:
 
 ```php
-// Temporary debug function - REMOVE setelah testing
+// Temporary debug function - REMOVE after testing
 add_action('admin_notices', function() {
     if (class_exists('WooCommerce')) {
         echo '<div class="notice notice-success"><p>WooCommerce ACTIVE ✓</p></div>';
@@ -88,7 +88,7 @@ add_action('admin_notices', function() {
 2. **Order Exporter** (main menu with download icon)
 
 ### ⚠️ When WooCommerce is NOT Active:
-1. **KPE Status** (main menu) - Shows troubleshooting info
+1. **KPE Status** (main menu) - Shows troubleshooting information
 
 ## 🆘 Still Having Issues?
 
@@ -108,4 +108,4 @@ add_action('admin_notices', function() {
 
 ---
 
-**Pro Tip**: Setelah WooCommerce diaktifkan, refresh halaman admin WordPress untuk melihat menu muncul.
+**Pro Tip**: After activating WooCommerce, refresh the WordPress admin page to see the menu appear.
